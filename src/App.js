@@ -1,6 +1,6 @@
 import './App.css';
 import React, { Component } from 'react';
-import { getCurrentPath, parse, queryGoogleDNSResolver } from  './resolver';
+import { getCurrentPath, parse, queryGoogleDNSResolver, filters } from  './resolver';
 
 class App extends Component {
   state = { result: null, } 
@@ -19,12 +19,12 @@ class App extends Component {
   componentDidMount() {
     let path = getCurrentPath();
     let { address, type } = parse(path);
+    let rawType = path.split(':')[0];
     queryGoogleDNSResolver(address, type, (json) => {
       if(json['Status'] === 0){
         let result = json['Answer'].map(item => item['data']);
-        if(path.toUpperCase().includes('SPF')) {
-          console.log(result);
-          result = result.filter(item => item.includes('v=spf1',0));
+        if(rawType in filters) {
+          result = filters[rawType](result);
         }
         if(result) {
           this.setState({ result });
